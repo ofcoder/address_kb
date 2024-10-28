@@ -1,0 +1,97 @@
+.address-container {
+    width: 500px;
+    align-self: stretch;
+    background: rgba(248, 249, 250, 0.92);
+    box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.20);
+    height: calc(100vh - 70px);
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    border: 2px solid rgba(0, 0, 0, 0);
+    background-clip: padding-box;
+    border-radius: 360px;
+    background-color: #BFBFBF;
+}
+
+@media print {
+    #application, #panel, .head, .ymaps3x0--controls {
+        display: none !important;
+    }
+    html {
+        height: 100%;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+.hover {
+    width: 100%;
+    display: none;
+    height: 50px;
+    padding: 0px 20px;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    align-self: stretch;
+    border-radius: 8px 8px 0px 0px;
+    background: rgba(248, 249, 250, 0.92);
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    user-select: none;
+}
+
+.hover-text {
+    color: var(--blue-700);
+    text-shadow: 0px 1px 2px #FFF;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.hover-toggle {
+    height: 16px;
+    width: 16px;
+}
+
+.hover-toggle-up {
+    background: url('images/toggle-up.svg') no-repeat;
+}
+
+.hover-toggle-down {
+    background: url('images/toggle-down.svg') no-repeat;
+}
+
+.address-hover {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    align-self: stretch;
+    width: max-content;
+}
+
+@media screen and (max-width:822px) {
+    .hover {
+        display: flex;
+    }
+
+    .address-container {
+        width: 100%;
+        height: calc(100vh - 125px);
+        display: none;
+    }
+
+    .address-hover {
+        justify-content: flex-end;
+        width: 100%;
+        position: sticky;
+        top: 100%;
+    }
+}

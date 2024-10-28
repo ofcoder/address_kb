@@ -1,0 +1,24 @@
+.map-name {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 250px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    background: hsla(0,0%,100%,.85);
+    z-index: -1;
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    padding: 11px 11px 11px calc(100% + 35px);
+    height: 42px;
+}
+
+.ymaps-2-1-79-copyrights-pane {
+    left: 500px !important;
+}
+
+.ymaps-2-1-79-gototech {
+    display: none !important;
+}

@@ -1,0 +1,55 @@
+.shopFilter {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 15px;
+    line-height: 14px; /* 93.333% */
+    padding: 13px 15px;
+}
+
+.historyTable {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background: var(--gray-white);
+    margin: 20px 0;
+
+    box-shadow: 0 2px 4px 0px rgba(0, 0, 0, 0.08);
+
+    color: var(--body-text-body-color);
+    font-size: 12px;
+    overflow: auto;
+}
+
+.tableRow {
+    display: flex;
+}
+
+.tableRow > div {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+}
+
+.tableRow:nth-child(odd) {
+    background: var(--gray-100);
+}
+
+.tableHeaderRow {
+    font-weight: 500;
+}
+
+.tableCell:nth-child(1) {
+    width: 125px;
+}
+.tableCell:nth-child(2) {
+    width: 80px;
+}
+.tableCell:nth-child(3) {
+    width: 320px;
+}
+.tableCell:nth-child(4) {
+    width: 60px;
+}
+.tableCell:nth-child(5) {
+    width: 80px;
+}

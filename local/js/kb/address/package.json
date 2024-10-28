@@ -1,0 +1,7 @@
+{
+  "name": "address",
+  "version": "1.0.0",
+  "dependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-latest/xlsx-latest.tgz"
+  }
+}

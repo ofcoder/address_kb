@@ -1,0 +1,1 @@
+.menu {display: flex;gap: 15px }.menu-button {display: flex;flex-direction: row;align-content: center;gap: 8px;cursor: pointer;align-items: center;padding: 10px;color: #4D4D4D;font-size: 14px;font-weight: 400;border-radius: 8px;background: var(--gray-white);}.menu-button:hover {color: var(--blue-500);}

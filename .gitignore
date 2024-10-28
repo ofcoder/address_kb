@@ -1,6 +1,5 @@
-/*
-!/local/js/kb/*
-!/local/component/kb/*
-!/local/php_interface/*
-!/local/templates/address/*
-!/address/*
+/local/logs/*
+/local/vendor
+/local/lang
+/local/routes
+.idea/*
