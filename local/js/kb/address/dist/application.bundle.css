@@ -1,6 +1,7 @@
 .map-name {
     white-space: nowrap;
-    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+       text-overflow: ellipsis;
     overflow: hidden;
     max-width: 250px;
     border-radius: 999px;
@@ -28,7 +29,8 @@
 }
 .shopFilter {
     overflow: hidden;
-    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+       text-overflow: ellipsis;
     font-size: 15px;
     line-height: 14px; /* 93.333% */
     padding: 13px 15px;
@@ -303,7 +305,8 @@
 
     overflow: hidden;
     color: var(--gray-white);
-    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+       text-overflow: ellipsis;
     font-size: 14px;
     line-height: 16px; /* 114.286% */
 }
@@ -334,7 +337,8 @@
     background: var(--gray-white);
 
     overflow: hidden;
-    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+       text-overflow: ellipsis;
     font-size: 13px;
     font-weight: 400;
     line-height: 16px; /* 123.077% */
@@ -724,7 +728,8 @@ input {
 
     overflow: hidden;
     color: #000;
-    text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
+       text-overflow: ellipsis;
     font-size: 13px !important;
     font-weight: 400;
     line-height: 14px; /* 107.692% */

@@ -38,7 +38,7 @@ CJSCore::Init(array("popup"));
     <div class="address-container" id="application"></div>
 </div>
 
-<script type="text/javascript">
+<script>
     const application = new BX.KB.AddressProgram('#application', '#historyApp');
     application.start('<?=$arResult['MODE']?>', '<?=SITE_TEMPLATE_PATH?>/images');
     const storeShop = application.getShopStore();
@@ -48,3 +48,6 @@ CJSCore::Init(array("popup"));
     storeShop.filters = <?=json_encode($arResult['FILTERS'])?>;
     historyShop.histories = <?=json_encode($arResult['HISTORIES'])?>;
 </script>
+<?php
+//log2file($arResult,'$arResult', '/home/bitrix/www/local/logs/');
+?>

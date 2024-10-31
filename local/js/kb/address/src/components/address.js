@@ -11,26 +11,78 @@ export const Application =
 	props: {
 		mode: { default: 'admin' },
 	},
+    data() {
+        return {
+            /* Текущие координаты области просмотра */
+            sw_lat: 0,
+            sw_lng: 0,
+            ne_lat: 0,
+            ne_lng: 0,
+            center_lat: 0,
+            center_lng: 0,
+            /* Текущие координаты области просмотра */
+        }
+    },    
     computed: {
         ...mapState(shopStore, ['shops']),
+        geoLocationsIsEmpty() {
+            return this.sw_lat === 0 || this.ne_lat === 0 || this.sw_lng === 0 || this.ne_lng === 0
+        },
         pointToDelete() {
             return this.shops.filter(shop => shop.UF_STATUS === '2')
         }
     },
     methods: {
+
+        filteredShops() {
+            const {sw_lat, sw_lng, ne_lat, ne_lng} = this;
+            const _geoLocationsIsEmpty = this.geoLocationsIsEmpty;
+            return this.shops.filter(shop => _geoLocationsIsEmpty || 
+            (shop.UF_LATITUDE >= sw_lat &&
+             shop.UF_LATITUDE <= ne_lat &&
+             shop.UF_LONGITUDE >= sw_lng &&
+             shop.UF_LONGITUDE <= ne_lng)
+            )
+        },
+
+
         getParam(name, location) {
             location = location || window.location.hash;
             var res = location.match(new RegExp('[#&]' + name + '=([^&]*)', 'i'));
             return (res && res[1] ? res[1] : false);
         },
-        setLocationHash() {
+        async setLocationHash(event) {
             const params = [
                 'type=' + map.getType().split('#')[1],
                 'center=' + map.getCenter(),
                 'zoom=' + map.getZoom()
             ];
             window.location.hash = params.join('&');
-        },
+            if (event) {
+                const boundsNew = event.get('newBounds');
+                if (boundsNew) {
+                    const v_sw_lat = boundsNew[0][0];
+                    const v_sw_lng = boundsNew[0][1];
+                    const v_ne_lat = boundsNew[1][0];
+                    const v_ne_lng = boundsNew[1][1];
+                    if (  v_sw_lat < this.sw_lat 
+                        || v_sw_lng < this.sw_lng 
+                        || v_ne_lat > this.ne_lat 
+                        || v_ne_lng > this.ne_lng) {
+
+                            //* добавим сразу с удвоенным запасом */
+                            const lat_additive = (v_ne_lat - v_sw_lat)/2;
+                            const lng_additive = (v_ne_lng - v_sw_lng)/2;
+
+                            this.sw_lat = v_sw_lat - lat_additive;
+                            this.sw_lng = v_sw_lng - lng_additive;
+                            this.ne_lat = v_ne_lat + lat_additive;
+                            this.ne_lng = v_ne_lng + lng_additive;
+                            await this.addGeoObjects();
+                    }
+                }
+            }
+      },
         setMapStateByHash() {
             const hashType = this.getParam('type'),
                 hashCenter = this.getParam('center'),
@@ -45,162 +97,194 @@ export const Application =
                 map.setZoom(hashZoom);
             }
         },
-        initYandexMaps() {
+        async initYandexMaps() {
             window.map = null;
-            ymaps.ready(() => {
-                map = new ymaps.Map('map', {
-                    center: typeof this?.shops[0]?.UF_LONGITUDE !== 'undefined' && typeof this?.shops[0]?.UF_LATITUDE !== 'undefined'? [this.shops[0].UF_LATITUDE, this.shops[0].UF_LONGITUDE] : ['55.749451', '37.542824'],
-                    zoom: this.mode === 'admin' ? 17 : 12,
-                    controls: ['geolocationControl', 'zoomControl', 'typeSelector']
-                }, {
-                    searchControlProvider: 'yandex#search',
-                    zoomControlSize: 'small',
-                    typeSelectorSize: 'small',
-                    zoomControlPosition: {
-                        top: '350px',
-                        right: '5px',
-                    },
-                    geolocationControlPosition: {
-                        top: '450px',
-                        right: '5px',
-                    },
-                    typeSelectorPosition: {
-                        top: '130px',
-                        right: '5px',
-                    },
-                });
-                if (this.shops.length !== 0) {
-                    this.addGeoObjects();
+            await ymaps.ready(async () => {
+                window.map = new ymaps.Map(
+                "map",
+                {
+                  center:
+                    typeof this?.shops[0]?.UF_LONGITUDE !== "undefined" &&
+                    typeof this?.shops[0]?.UF_LATITUDE !== "undefined"
+                      ? [this.shops[0].UF_LATITUDE, this.shops[0].UF_LONGITUDE]
+                      : ["55.749451", "37.542824"],
+                  zoom: this.mode === "admin" ? 17 : 12,
+                  controls: [
+                    "geolocationControl",
+                    "zoomControl",
+                    "typeSelector",
+                  ],
+                },
+                {
+                  searchControlProvider: "yandex#search",
+                  zoomControlSize: "small",
+                  typeSelectorSize: "small",
+                  zoomControlPosition: {
+                    top: "350px",
+                    right: "5px",
+                  },
+                  geolocationControlPosition: {
+                    top: "450px",
+                    right: "5px",
+                  },
+                  typeSelectorPosition: {
+                    top: "130px",
+                    right: "5px",
+                  },
                 }
-                map.events.add(['boundschange', 'typechange'], () => {
-                    this.setLocationHash();
+              );
+              window.map.events.add(["boundschange"], async (event) => {
+                await this.setLocationHash(event);
+              });
+              // Try W3C Geolocation (Preferred)
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  function (position) {
+                    ymaps.ready(function () {
+                      window.map.setCenter([
+                        position.coords.latitude,
+                        position.coords.longitude,
+                      ]);
+                    });
+                  },
+                  function () {
+                    ymaps.ready(function () {
+                      //window.map.setCenter([55.749451, 37.542824]);
+                    });
+                  }
+                );
+              }
+              // Browser doesn't support Geolocation
+              else {
+                ymaps.ready(function () {
+                  window.map.setCenter([55.749451, 37.542824]);
                 });
-                this.setMapStateByHash();
+              }
+
+              if (this.shops.length !== 0) {
+                await this.addGeoObjects();
+              }
+
+              this.setMapStateByHash();
             });
         },
-        addGeoObjects() {
+        async addGeoObjects() {
             let features = [];
             let polygonsObject = [];
             let myIcon = ymaps.templateLayoutFactory.createClass(
                 '<div class="map-name">'+ this.$Bitrix.Loc.getMessage('SHOP_NUMBER') +'{{ properties.iconCaption }}</div>'
             );
-
-            this.shops.forEach((element, key) => {
-                features[key] = {
-                    type: "Feature",
-                    id: element.ID,
-                    geometry: {type: "Point", coordinates: [element.UF_LATITUDE, element.UF_LONGITUDE]},
-                    properties: {
-                        balloonContentHeader: this.$Bitrix.Loc.getMessage('SHOP', {'#NUMBER#': element.UF_NUMBER}),
-                        balloonContentBody: element.UF_ADDRESS + '<br>' +
-                            this.$Bitrix.Loc.getMessage('PEOPLE', {'#COUNT#': element.UF_PEOPLE}) + '<br>' +
-                            element.UF_ENTITY + '<br>' +
-                            this.$Bitrix.Loc.getMessage('TIME') + '<br>' +
-                            this.$Bitrix.Loc.getMessage('PHONE', {'#PHONE#': element.UF_PHONE}) + '<br>',
-                        clusterCaption: this.$Bitrix.Loc.getMessage('SHOP', {'#NUMBER#': element.UF_NUMBER}),
-                        iconCaption: element.UF_NUMBER,
-                    },
-                    options: {
-                        preset: "islands#redDotIcon",
-                        iconLayout: 'default#imageWithContent',
-                        iconImageHref: this.$Bitrix.Data.get('site_path') + '/map-logo.svg',
-                        iconImageSize: [36, 36],
-                        iconShape: {type: 'Rectangle', coordinates: [[0, 36], [36, 0]]},
-                        iconContentLayout: myIcon,
-                    }
-                }
-
-                let polygonElement = {
-                    type: "Feature",
-                    id: element.ID,
-                    geometry: {
-                        type: "Polygon", // Описываем геометрию геообъекта.
-                        coordinates: this.polygonCoordsAdd([element.UF_LATITUDE, element.UF_LONGITUDE], element.UF_VERTEX_COORDS ?? []),
-                        fillRule: "nonZero" // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
-                    },
-                    properties:{
-                        // Описываем свойства геообъекта.
-                        // Содержимое балуна.
-                        hintContent: this.$Bitrix.Loc.getMessage('ADDRESS_PROGRAM', {'#COUNT#': element.UF_NUMBER}),
-                        status: element.UF_STATUS,
+                const filteredShops = this.filteredShops();
+                filteredShops.forEach((element, key) => {
+                    features[key] = {
+                        type: "Feature",
                         id: element.ID,
-                    },
-                    options: {
-                        fillColor: '#e75151',
-                        strokeColor: '#ff0400',
-                        opacity: 0.5,
-                        strokeWidth: 5,
-                        strokeStyle: 'solid'
+                        geometry: {type: "Point", coordinates: [element.UF_LATITUDE, element.UF_LONGITUDE]},
+                        properties: {
+                            balloonContentHeader: this.$Bitrix.Loc.getMessage('SHOP', {'#NUMBER#': element.UF_NUMBER}),
+                            balloonContentBody: element.UF_ADDRESS + '<br>' +
+                                this.$Bitrix.Loc.getMessage('PEOPLE', {'#COUNT#': element.UF_PEOPLE}) + '<br>' +
+                                element.UF_ENTITY + '<br>' +
+                                this.$Bitrix.Loc.getMessage('TIME') + '<br>' +
+                                this.$Bitrix.Loc.getMessage('PHONE', {'#PHONE#': element.UF_PHONE}) + '<br>',
+                            clusterCaption: this.$Bitrix.Loc.getMessage('SHOP', {'#NUMBER#': element.UF_NUMBER}),
+                            iconCaption: element.UF_NUMBER,
+                        },
+                        options: {
+                            preset: "islands#redDotIcon",
+                            iconLayout: 'default#imageWithContent',
+                            iconImageHref: this.$Bitrix.Data.get('site_path') + '/map-logo.svg',
+                            iconImageSize: [36, 36],
+                            iconShape: {type: 'Rectangle', coordinates: [[0, 36], [36, 0]]},
+                            iconContentLayout: myIcon,
+                        }
                     }
-                };
-
-                polygonsObject.push(polygonElement);
-            });
-
-            let objectManager = new ymaps.ObjectManager({
-                clusterize: false,
-                clusterIconLayout: "default#pieChart",
-                clusterDisableClickZoom: true,
-            });
-            let polygonManager = new ymaps.ObjectManager();
-            polygonManager.add(polygonsObject);
-            objectManager.add(features);
-            map.geoObjects.add(polygonManager);
-            map.geoObjects.add(objectManager);
-            if (this.mode === 'marketer') {
-                map.setBounds(map.geoObjects.getBounds(), {checkZoomRange:true}).then(() => {
-                    if(map.getZoom() < 5) map.setZoom(5);
+    
+                    let polygonElement = {
+                        type: "Feature",
+                        id: element.ID,
+                        geometry: {
+                            type: "Polygon", // Описываем геометрию геообъекта.
+                            coordinates: this.polygonCoordsAdd([element.UF_LATITUDE, element.UF_LONGITUDE], element.UF_VERTEX_COORDS ?? []),
+                            fillRule: "nonZero" // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
+                        },
+                        properties:{
+                            // Описываем свойства геообъекта.
+                            // Содержимое балуна.
+                            hintContent: this.$Bitrix.Loc.getMessage('ADDRESS_PROGRAM', {'#COUNT#': element.UF_NUMBER}),
+                            status: element.UF_STATUS,
+                            id: element.ID,
+                        },
+                        options: {
+                            fillColor: '#e75151',
+                            strokeColor: '#ff0400',
+                            opacity: 0.5,
+                            strokeWidth: 5,
+                            strokeStyle: 'solid'
+                        }
+                    };
+    
+                    polygonsObject.push(polygonElement);
                 });
-            }
-
-            objectManager.objects.events.add(['balloonopen'], (e) => {
-                const coords = e.get('target').getData().geometry.coordinates;
-                map.setCenter(coords);
-            });
-console.log("objectManager: " +objectManager);
-            polygonManager.objects.events.add(['click'], (e) => {
-                let object = polygonManager.objects.getById(e.get('objectId'));
-console.log("object: " + object);
-                if (object.properties.status === '1' && this.mode !== 'marketer') {
-                    let geoObject = new ymaps.GeoObject({
-                        geometry: object.geometry,
-                        properties: object.properties,
-                    }, object.options);
-
-                    geoObject.events.add(['click',], (e) => {
-                        e.preventDefault();
-                        geoObject.editor.startEditing();
-                    });
-                    geoObject.events.add(['dblclick'], (e)=> {
-                        e.preventDefault();
-                        geoObject.editor.stopEditing();
-                        let vertexCoords = e.get('target').geometry.getCoordinates();
-
-                        BX.ready(() => {
-                            console.log("BX ready");
-                            BX.ajax.runComponentAction('kb:address.program', 'setVertexCoords', {
-                                mode: 'class',
-                                data: {
-                                    shopId: geoObject.properties.get('id'),
-                                    coords: vertexCoords
-                                },
-                            }).then(function (response) {
-                                // console.log(response);
-                            }, function (response) {
-                                console.log(response);
-                            });
+   
+                let objectManager = new ymaps.ObjectManager({
+                    clusterize: true,
+                    clusterIconLayout: "default#pieChart",
+                    clusterDisableClickZoom: false,
+                });
+                let polygonManager = new ymaps.ObjectManager();
+                polygonManager.add(polygonsObject);
+                objectManager.add(features);
+                map.geoObjects.removeAll();
+                map.geoObjects.add(polygonManager);
+                map.geoObjects.add(objectManager);
+    
+                objectManager.objects.events.add(['balloonopen'], (e) => {
+                    const coords = e.get('target').getData().geometry.coordinates;
+                    map.setCenter(coords);
+                });
+                polygonManager.objects.events.add(['click'], (e) => {
+                    let object = polygonManager.objects.getById(e.get('objectId'));
+                    if (object.properties.status === '1' && this.mode !== 'marketer') {
+                        let geoObject = new ymaps.GeoObject({
+                            geometry: object.geometry,
+                            properties: object.properties,
+                        }, object.options);
+    
+                        geoObject.events.add(['click',], (e) => {
+                            e.preventDefault();
+                            geoObject.editor.startEditing();
                         });
-
-                    });
-                    map.geoObjects.add(geoObject);
-                    geoObject.editor.startEditing();
-                    polygonManager.remove([e.get('objectId')]);
-                }
-            });
+                        geoObject.events.add(['dblclick'], (e)=> {
+                            e.preventDefault();
+                            geoObject.editor.stopEditing();
+                            let vertexCoords = e.get('target').geometry.getCoordinates();
+    
+                            BX.ready(() => {
+                                console.log("BX ready");
+                                BX.ajax.runComponentAction('kb:address.program', 'setVertexCoords', {
+                                    mode: 'class',
+                                    data: {
+                                        shopId: geoObject.properties.get('id'),
+                                        coords: vertexCoords
+                                    },
+                                }).then(function (response) {
+                                    // console.log(response);
+                                }, function (response) {
+                                    //console.log(response);
+                                });
+                            });
+    
+                        });
+                        map.geoObjects.add(geoObject);
+                        geoObject.editor.startEditing();
+                        polygonManager.remove([e.get('objectId')]);
+                    }
+                });                
         },
         polygonCoordsAdd(coordsPlace, coordsVertex) {
             let polygonArray = coordsVertex
-            console.log("polygonArray" + polygonArray + "  --- coordsPlace: " + coordsPlace);
+            //console.log("polygonArray" + polygonArray + "  --- coordsPlace: " + coordsPlace);
             if (coordsVertex.length === 0) {
                 polygonArray = [
                     [
@@ -245,8 +329,8 @@ console.log("object: " + object);
             });
         },
     },
-    created() {
-        this.initYandexMaps();
+    created: async function () {
+        await this.initYandexMaps();
         this.exportExcel();
     },
     watch: {

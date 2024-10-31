@@ -55,4 +55,21 @@ class RestApiHelpers
 
         return $errors;
     }
+
+    public static function userWithLoginOrEmailExists($login, $email): bool
+    {
+        global $DB;
+        $res = $DB->Query(
+            "SELECT 'x' FROM b_user "
+            . "WHERE LOGIN = '{$DB->ForSql($login, 50)}' "
+            . "OR EMAIL = '{$DB->ForSql($email, 50)}' "
+        );
+
+        if ($res->Fetch())
+        {
+            return true;
+        }
+
+        return false;
+    }
 }

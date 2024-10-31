@@ -2,4 +2,5 @@
 /local/vendor
 /local/lang
 /local/routes
+/node_modules/*
 .idea/*

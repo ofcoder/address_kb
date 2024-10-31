@@ -175,7 +175,6 @@ if (str_contains($APPLICATION->GetCurPage(), 'crm/type/31/kanban')) {
 AddEventHandler("forum", "onBeforeMessageUpdate", ["EventHandlers", "onBeforeMessageUpdateHandler"]);
 AddEventHandler("tasks", "onBeforeTaskUpdate", ["EventHandlers", "onBeforeTaskUpdateHandler"]);
 AddEventHandler("main", "onBuildGlobalMenu", ["EventHandlers", "onBuildGlobalMenuHandler"]);
-AddEventHandler("main", "onAdminListDisplay", ["EventHandlers", "onAdminListDisplayHandler"]);
 AddEventHandler("main", "onBeforeUserUpdate", ["EventHandlers", "onBeforeUserUpdateHandler"]);
 AddEventHandler("iblock", "onAfterIBlockSectionUpdate", ["EventHandlers", "onAfterIBlockSectionUpdateHandler"]);
 AddEventHandler("iblock", "onAfterIBlockSectionAdd", ["EventHandlers", "onAfterIBlockSectionAddHandler"]);

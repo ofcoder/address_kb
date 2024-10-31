@@ -10,7 +10,7 @@ class AddressProgram extends CBitrixComponent implements \Bitrix\Main\Engine\Con
     private array $shopsNumber = [];
     private array $statusArray = ['12', '21', '23', '34', '43', '41'];
 
-    private array $defaultSelect = ['UF_NUMBER', 'UF_ADDRESS', 'UF_STATUS', 'UF_CITY', 'UF_TERRITORY', 'UF_ZRU_ID',
+    private array $defaultSelect = ['ID','UF_NUMBER', 'UF_ADDRESS', 'UF_STATUS', 'UF_CITY', 'UF_TERRITORY', 'UF_ZRU_ID',
         'UF_SUPERVISOR', 'UF_PHONE', 'UF_LATITUDE', 'UF_LONGITUDE', 'UF_VERTEX_COORDS', 'UF_EMAIL', 'UF_PEOPLE'];
 
 
@@ -159,7 +159,9 @@ class AddressProgram extends CBitrixComponent implements \Bitrix\Main\Engine\Con
                 $arShop['UF_COMMENT'] = htmlspecialcharsback($arShop['UF_COMMENT']);
                 $arShop['UF_VERTEX_COORDS'] = json_decode($arShop['UF_VERTEX_COORDS']);
                 $arShop['ADDRESS_PROGRAM'] = [];
-				$arShop['ID'] = $arShop['UF_NUMBER'];				
+              $arShop['ID_TABLE'] = $arShop['ID'];
+              $arShop['ID'] = $arShop['UF_NUMBER'];
+					
                 $shops[] = $arShop;
                 $shopsId[] = $arShop['UF_NUMBER'];
             }
@@ -365,6 +367,10 @@ class AddressProgram extends CBitrixComponent implements \Bitrix\Main\Engine\Con
 
     public function setVertexCoordsAction($shopId, $coords)
     {
+        $shop = $this->getShops(['UF_NUMBER' => $shopId]);
+        //log2file($shopId, '$shopId', '/home/bitrix/www/local/logs/');
+        //log2file($shop, '$shop', '/home/bitrix/www/local/logs/');
+        $shopId = $shop[0]['ID_TABLE'];
         ShopsTable::update($shopId, ['UF_VERTEX_COORDS' => json_encode($coords)]);
         return 'CHANGED';
     }
